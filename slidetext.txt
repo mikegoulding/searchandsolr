@@ -1,0 +1,94 @@
+Search vs Solr Presentation notes
+
+Drupal isn’t known as a particularly lightweight content management system and that is one of the reasons we love it, right? It is meant to handle large amounts of complex content. A problem occurs when you have a site that is just flush with content of different types, how do you get users to it? Navigation can only get you so far sometimes. We have personally seen this on everything from large-scale publishing sites to medical practice sites. 
+
+Having a site search of some sort can greatly improve user experience and has been a core part of the web for a long time now. It solves a few pain points that exist in sites from small to large. What are these pain points? Users don’t want to wade through navigation. You want to control what content is presented. (Meaning you aren’t leaving it to an external search engine like Google to get users to the right content) You want a pleasant experience for your users that they will actually use.
+
+Without site search, you might be stuck making a bunch of views pages for all of the different combinations of content on the site. You really don’t want to do that since you already have to for the admin side of your site and Views can be a pain sometimes. It also isn’t more than a filtered query, so it isn’t really site search.
+
+We can’t talk about search without getting into the search module that has been part of Drupal since version 4 ish. The vanilla search module in Drupal is a very passable solution for searching content and users in a Drupal site. It doesn’t take much to set it up either, so if you want to get to a working search experience very quickly, this might be your best bet.
+
+Let’s talk about that setup process. You install the module. This might already be installed if you are using the standard Drupal install. After the module is installed, you’ll find the setting for it under search in the configuration admin menu. No matter what version of Drupal you are on this is pretty much going to be the case. This config is going to have some settings for what type(s) of content you want to search and how much content should be indexed at once. 
+
+You can also set up some things that will influence the search results. This is one advantage that the search module has over something like a views page. You can make keyword relevance more important or whether or not content in promoted to the front page or other options like that. This can give you some control over what content is returned for a given search.
+
+The search page itself isn’t too configurable beyond that, but it does come with an advanced search built into the page. This gives users more control over how their search keywords are interpreted with things like changing the operator from contains to match their exact phrase. It will also allow them to search in whatever content types are configured on the site. If you want your users to have visibility of the different content types on the site and they have useful names, then this can be something that replaces a bunch of different search pages on the site. If that isn’t what you want, well, you are out of luck with the search module.
+
+Here are the pros and cons of the search module. 
+Pros:
+Easy setup
+Very little to configure
+Comes with blocks and pages ready to go out of the box
+Included with most Drupal distributions
+Advanced search included
+Cons:
+Very little to configure
+No control over the advanced search
+Slow
+Can only search content on this drupal instance
+Cron is the only way to update site index
+
+
+There are other search modules available for Drupal, of course. There are modules that can extend the usefulness of the search module, but they can’t change too much about the underlying architecture that has a few flaws that are difficult to overcome. It will slow down the site on large Drupal sites and it still won’t have a lot of configurability to the search. For a small site, the search module is a good fit, but I wouldn’t recommend it for larger sites or sites that want to have specific control over the search.
+
+[Show Search example site to more specifically call out what was discussed.]
+
+So if having search on Drupal is a recipe for a slow site, what can you do? Drupal is known for being great at integrations and this is a good opportunity to leverage one of the more useful search technologies available. I wouldn’t classify it as “easy-to-use”, but Apache Solr is powerful. It has a lot in common with Drupal if you think about it. It is meant for a large amount of content, has a steep learning curve, and incredibly scalable in the right hands.
+
+If you aren’t familiar with Solr, then this doesn’t mean too much other than a fluffy description. Solr is a search engine software that can provide indexing and search from a variety of sources. It allows for more in-depth analysis of the content that is indexed. It can translate content, exclude html, search against spelling errors, be case-insensitive, determine likeness between content, and a whole lot more. Some hosting providers, like Pantheon, provide this service as part of the their hosting infrastructure. If you manage your own server you can install Solr on that server or another remote instance. There are also a few cloud solr instances that are available out there that work pretty well also.
+
+There are a few ways to connected to solr on your Drupal site. You will find that most of the modules available have some limitation to what can be done with Solr in Drupal. The search_api module and search_api_solr modules are the most popular option right now and will be supported pretty well in anything Drupal 7 or greater right now.
+
+Before you can get started with Solr in Drupal, you are going to have to setup a server and index somewhere. You’ll need those settings in order to complete the setup on the Drupal site and the setup will govern a bit of what you can do with Solr on your site. We won’t have time here to do a deep dive into Solr Schema and config, but a few things that you should be aware of have to do with what kind of fields the index will use.
+
+Most Drupal modules that provide a harness to Solr will have some sort of default schema and config files included to get you started on your remote solr index. Search_api_solr provides some great config files that will probably do all that you need. These include some dynamic fields that mean you won’t have to update any solr config just because you added a new field or content type. These fields will cover everything from date fields to currency to file processing.
+
+One of the more powerful things that becomes available when you use Solr is the ability to search within documents. That means you can extend the search into uploaded pdfs to provide even better search results. We’ve used this on a variety of sites to get users to information that would otherwise be unavailable to other searches. 
+
+Setting up the search_api and search_api_solr modules is also pretty simple to do. After installing them, you are going to need to configure a server with your solr server connection settings. It is possible that your host may have a specific module that you will need to use in order to connect to their solr search server. Pantheon and Acquia both have modules that you will need to install to make connecting to their services a bit easier. It is technically possible to connect without those modules, but from what we’ve seen it usually isn’t worth the fight to play detective and hunt for those connection details on your own.
+
+Outside of connection information and authentication, there isn’t much to do in setting up the server in the search api configuration. The bulk of the configuration will happen when you setup your index on Drupal. Much like the index on Solr, this is where the bulk of your configuration will occur for this. An index in search api is connected to a server. From there, you will configure what sort of content you want it to index. It can do everything from content to blocks to users to pretty much anything in your drupal instance. You can setup multiple indexes to make sure that you have more granular control of settings per type of indexed content.
+
+We won’t cover all of the different settings that are possible to configure in an index, but the most important, again, is field setup. You can configure what fields are indexed and what type of field in solr it will be indexed as. Full text fields are easiest to search against through keyword search, so you will want to use that for things like the title and body type fields. You may also want to include things like the status field and publish dates for filtering results. Including things like the content type and such can also give some lightweight access filtering as well.
+
+Believe it or not, that was the easy part of setting this up in Drupal. Like I said before, Solr is a bit like Drupal. It is as powerful as it is complex. Unlike the Search module that comes with Drupal, the search api and search api solr modules don’t come with any pre-configured search pages. You’ll have to roll your own display of the indexed content. There are modules that extend the search api module that make this less of a problem and I would recommend using those where possible.
+
+There is a views integration that allows you to use Views to query the solr index for content and that works pretty well. It supports highlighted search results, filtering, paging, and such, all within the probably familiar views interface. Views can be a bit of a bear to deal with if you don’t usually work with it, but it is probably a bit easier to get into than getting deep into Solr queries. You can use an exposed views form to put your search box on different pages to give you a global search for your site.
+
+Let’s go over the pros and cons of using solr in Drupal.
+Pros:
+Scalable
+Fast (queries at least)
+Great control over how content is index
+You can update the index on cron or push button
+Supported by large Drupal hosts
+Cons:
+That learning curve
+Option paralysis - Sooo much to configure. Where do you start?
+More upfront setup
+You will have to build your own search pages
+Overkill for smaller sites
+
+[Show solr search example site.]
+
+Something that is really awesome that we were able to make use of in a Drupal site we worked on was the More Like This feature that is available within Solr and has become very useful in the more recent versions of Solr. This query in Solr will compare an indexed item against other similar indexed items using fields we specify for it to use. So we can tell it to use body content and other fields to see what other content is similar to the one they are currently looking at. This provides a great block in a sidebar or footer of a content page that directs the user to look at other articles related to the one they are looking at. 
+
+This sort of feature is a great example of how incredible Solr can be. We can set a threshold for similarity using the scoring system that Solr has to make sure that only items that are at least somewhat similar are returned.
+
+One thing that we do have to mention with that is that we were not able to accomplish that using the modules available in the current contrib space on Drupal.org. This was a case where we had to make a choice to dip into code and write our own solr integration that fit our very specific need. In the end, I think we would do it the same way as that gave us the greatest control over how we fetched content and what features of Solr were most important to us.
+
+[Show off more like this on an EIQ site]
+
+These are not all of the Search options available to Drupal, of course. There are other search utilities out there that you can make use of and a few of them do have Drupal modules at this point as well. These are services like, ElasticSearch, that offer another way to do search in a complex way so you have options for your very specific external search service needs.
+
+If you want something that can handle very large amounts of content, but you aren’t interested in or able to invest the time into Solr. I would say that you could get away with a Google search integration. Google has become synonymous with search at this point and if you don’t mind relying on them for your site search, you can get a pretty full featured search page without a lot of effort. There are modules that are out there that can get you into Google Custom Search pretty easily. The free API that Google provides will have Google branding on the search results, so do keep that in mind. For a lot of sites, that isn’t a big deal. If it is something you can’t have, then they do have a paid site search option available that will give you the ability to disable the branding on search results.
+
+Another advantage to this might be that you already have things on your site that comes from Google. If you are using things like tag manager, analytics, maps, or other similar APIs then you have an account that can get the credentials to implement Google Custom Search. For some, this can be helpful to have one place where you get most of your external tools and manage api credentials and domain access rules. You also won’t have to worry about updating the index through your Drupal site, but that is sort of double-edged as you also won’t be able to manually update that index yourself as easily as the other options we discussed.
+
+We have used this on a few sites when a search was required, but the budget or time wasn’t there for something more involved. In a lot of ways it can provide a familiar element on your site as most people have some history with using Google for search. It also adds some parity between the search experience external to your site and within.
+
+[Potentially show off IMS google custom search.]
+
+Should you use Solr search for all Drupal sites that use search? I would say that isn’t something we can say definitively. It is more configurable than the standard search, but it does require a lot more configuration to get to the same result. If you want full control over the search experience and you have thousands of nodes on your site, then you will definitely want Solr or something similar for your site.
+
+Questions?
